@@ -27,4 +27,7 @@ public:
 
     UFUNCTION(BlueprintImplementableEvent, Category = "NPC|Combat")
     void OnDeath();
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
+    class UWidgetComponent* HealthWidgetComponent;
 };

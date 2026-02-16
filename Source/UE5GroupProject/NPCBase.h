@@ -1,11 +1,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "IDamageable.h"
 #include "GameFramework/Character.h"
 #include "NPCBase.generated.h"
 
 UCLASS()
-class UE5GROUPPROJECT_API ANPCBase : public ACharacter
+class UE5GROUPPROJECT_API ANPCBase : public ACharacter, public IDamageable
 {
     GENERATED_BODY()
 
@@ -22,10 +23,11 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "NPC|Stats")
     float CurrentHealth;
 
-    UFUNCTION(BlueprintCallable, Category = "NPC|Combat")
-    void ApplyDamage(float DamageAmount);
+    // Explicit interface implementation
+    virtual void ApplyDamage(float DamageAmount) override;
 
-    UFUNCTION(BlueprintImplementableEvent, Category = "NPC|Combat")
+    // Blueprint event for visual effects
+    UFUNCTION(BlueprintNativeEvent)
     void OnDeath();
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))

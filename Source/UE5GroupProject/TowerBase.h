@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Projectile.h"
 #include "TowerBase.generated.h"
 
 class ANPCBase;
@@ -18,12 +19,17 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Build")
     void SetPreview(bool bPreview);
 
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tower")
+    UStaticMeshComponent* TowerMesh;
 
 protected:
     virtual void BeginPlay() override;
     virtual void Tick(float DeltaTime) override;
 
 public:
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tower")
+    USceneComponent* MuzzlePoint;
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tower")
     float Range = 800.f;
 
@@ -32,6 +38,9 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tower")
     float Damage = 10.f;
+
+    UPROPERTY(EditAnywhere, Category = "Tower")
+    TSubclassOf<class AProjectile> ProjectileClass;
 
 private:
 

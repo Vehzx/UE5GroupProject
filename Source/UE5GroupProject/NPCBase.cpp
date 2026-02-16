@@ -30,6 +30,12 @@ void ANPCBase::BeginPlay()
     ApplyDamage(20.f);
 }
 
+void ANPCBase::OnDeath_Implementation()
+{
+    // Blueprint only hook for death visuals.
+    // Actual death logic is handled in ApplyDamage().
+}
+
 void ANPCBase::ApplyDamage(float DamageAmount)
 {
     // Reduce health by damage amount.

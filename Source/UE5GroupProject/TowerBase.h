@@ -14,6 +14,11 @@ class UE5GROUPPROJECT_API ATowerBase : public AActor
 public:
     ATowerBase();
 
+    //turn tower into preview
+    UFUNCTION(BlueprintCallable, Category = "Build")
+    void SetPreview(bool bPreview);
+
+
 protected:
     virtual void BeginPlay() override;
     virtual void Tick(float DeltaTime) override;
@@ -29,6 +34,10 @@ public:
     float Damage = 10.f;
 
 private:
+
+    UPROPERTY()
+    bool bIsPreview = false;
+
     float TimeSinceLastShot = 0.f;
 
     UPROPERTY()
@@ -36,4 +45,7 @@ private:
 
     ANPCBase* FindTarget();
     void FireAtTarget();
+
+
+
 };

@@ -12,9 +12,21 @@ void ATowerBase::BeginPlay()
     Super::BeginPlay();
 }
 
+void ATowerBase::SetPreview(bool bPreview)
+{
+    bIsPreview = bPreview;
+
+    // Preview towers should not shoot
+    SetActorTickEnabled(!bIsPreview);
+
+    SetActorEnableCollision(!bIsPreview);
+}
+
 void ATowerBase::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
+
+    if (bIsPreview) return;
 
     TimeSinceLastShot += DeltaTime;
 

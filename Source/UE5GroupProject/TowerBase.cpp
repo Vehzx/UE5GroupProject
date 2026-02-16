@@ -96,8 +96,12 @@ void ATowerBase::FireAtTarget()
 {
     if (ProjectileClass && CurrentTarget)
     {
-        FVector SpawnLocation = GetActorLocation();
-        FRotator SpawnRotation = (CurrentTarget->GetActorLocation() - SpawnLocation).Rotation();
+        const FVector SpawnLocation = MuzzlePoint
+            ? MuzzlePoint->GetComponentLocation()
+            : GetActorLocation();
+
+        const FRotator SpawnRotation =
+            (CurrentTarget->GetActorLocation() - SpawnLocation).Rotation();
 
         AProjectile* Proj = GetWorld()->SpawnActor<AProjectile>(
             ProjectileClass,
@@ -107,9 +111,8 @@ void ATowerBase::FireAtTarget()
 
         if (Proj)
         {
+            UE_LOG(LogTemp, Warning, TEXT("Spawned projectile (OnHit): %s"), *Proj->GetName());
             Proj->SetOwner(this);
-
-            Proj->Collision->MoveIgnoreActors.Add(this);
         }
     }
 }

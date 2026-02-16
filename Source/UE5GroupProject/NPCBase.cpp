@@ -38,22 +38,21 @@ void ANPCBase::OnDeath_Implementation()
 
 void ANPCBase::ApplyDamage(float DamageAmount)
 {
-    // Reduce health by damage amount.
+    UE_LOG(LogTemp, Warning, TEXT("ANPCBase::ApplyDamage called on %s, DamageAmount: %f (CurrentHealth: %f)"),
+        *GetName(), DamageAmount, CurrentHealth);
+
     CurrentHealth -= DamageAmount;
 
-    // Update the widgets displayed health.
     if (UEnemyHealthBarWidget* HealthWidget =
         Cast<UEnemyHealthBarWidget>(HealthWidgetComponent->GetUserWidgetObject()))
     {
         HealthWidget->SetHealth(CurrentHealth, MaxHealth);
     }
 
-    // Handle NPC death when health reaches zero or below.
     if (CurrentHealth <= 0.f)
-    { 
-        // Blueprint implementable event for death behaviour.
+    {
+        UE_LOG(LogTemp, Warning, TEXT("%s died"), *GetName());
         OnDeath();
-        // Remove NPC.
         Destroy();
     }
 }

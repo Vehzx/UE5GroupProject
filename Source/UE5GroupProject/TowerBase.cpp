@@ -26,9 +26,7 @@ void ATowerBase::SetPreview(bool bPreview)
 {
     bIsPreview = bPreview;
 
-    // Preview towers should not shoot
     SetActorTickEnabled(!bIsPreview);
-
     SetActorEnableCollision(!bIsPreview);
 }
 
@@ -41,7 +39,6 @@ void ATowerBase::Tick(float DeltaTime)
 
     TimeSinceLastShot += DeltaTime;
 
-    // Log current target status
     if (CurrentTarget)
     {
         UE_LOG(LogTemp, Warning, TEXT("CurrentTarget: %s"), *CurrentTarget->GetName());
@@ -51,16 +48,13 @@ void ATowerBase::Tick(float DeltaTime)
         UE_LOG(LogTemp, Warning, TEXT("CurrentTarget: NULL"));
     }
 
-    // Log time since last shot
     UE_LOG(LogTemp, Warning, TEXT("TimeSinceLastShot: %f"), TimeSinceLastShot);
 
-    // Acquire target if needed
     if (!IsValid(CurrentTarget) || CurrentTarget->IsActorBeingDestroyed())
     {
         CurrentTarget = FindTarget();
     }
 
-    // Check firing conditions
     if (CurrentTarget && TimeSinceLastShot >= FireRate)
     {
         UE_LOG(LogTemp, Warning, TEXT("FireAtTarget() SHOULD FIRE NOW"));
@@ -112,7 +106,32 @@ void ATowerBase::FireAtTarget()
         if (Proj)
         {
             UE_LOG(LogTemp, Warning, TEXT("Spawned projectile (OnHit): %s"), *Proj->GetName());
+
             Proj->SetOwner(this);
+
+            // Apply per-tower damage
+            Proj->Damage = TowerDamage;
+
+            UE_LOG(LogTemp, Warning, TEXT("Projectile damage set to: %f"), TowerDamage);
         }
     }
+}
+
+// --- Upgrade Functions ---
+void ATowerBase::UpgradeFireRate(float Amount)
+{
+    FireRate = FMath::Max(0.1f, FireRate - Amount);
+    UE_LOG(LogTemp, Warning, TEXT("Tower upgraded: FireRate now %f"), FireRate);
+}
+
+void ATowerBase::UpgradeRange(float Amount)
+{
+    Range += Amount;
+    UE_LOG(LogTemp, Warning, TEXT("Tower upgraded: Range now %f"), Range);
+}
+
+void ATowerBase::UpgradeDamage(float Amount)
+{
+    TowerDamage += Amount;
+    UE_LOG(LogTemp, Warning, TEXT("Tower upgraded: Damage now %f"), TowerDamage);
 }

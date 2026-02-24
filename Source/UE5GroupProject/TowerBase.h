@@ -15,7 +15,6 @@ class UE5GROUPPROJECT_API ATowerBase : public AActor
 public:
     ATowerBase();
 
-    //turn tower into preview
     UFUNCTION(BlueprintCallable, Category = "Build")
     void SetPreview(bool bPreview);
 
@@ -27,20 +26,52 @@ protected:
     virtual void Tick(float DeltaTime) override;
 
 public:
+
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tower")
     USceneComponent* MuzzlePoint;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tower")
+    // --- Tower Stats ---
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tower|Stats")
     float Range = 800.f;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tower")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tower|Stats")
     float FireRate = 1.f;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tower")
-    float Damage = 10.f;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tower|Stats")
+    float TowerDamage = 10.f;
 
     UPROPERTY(EditAnywhere, Category = "Tower")
-    TSubclassOf<class AProjectile> ProjectileClass;
+    TSubclassOf<AProjectile> ProjectileClass;
+
+    // --- Upgrade Values (editable per tower) ---
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tower|Upgrades")
+    float FireRateUpgradeAmount = 0.2f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tower|Upgrades")
+    float RangeUpgradeAmount = 200.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tower|Upgrades")
+    float DamageUpgradeAmount = 5.f;
+
+    // --- Upgrade Functions ---
+    UFUNCTION(BlueprintCallable, Category = "Tower|Upgrades")
+    void UpgradeFireRate(float Amount);
+
+    UFUNCTION(BlueprintCallable, Category = "Tower|Upgrades")
+    void UpgradeRange(float Amount);
+
+    UFUNCTION(BlueprintCallable, Category = "Tower|Upgrades")
+    void UpgradeDamage(float Amount);
+
+    // --- Blueprint Wrappers ---
+    UFUNCTION(BlueprintCallable, Category = "Tower|Upgrades")
+    void ApplyFireRateUpgrade() { UpgradeFireRate(FireRateUpgradeAmount); }
+
+    UFUNCTION(BlueprintCallable, Category = "Tower|Upgrades")
+    void ApplyRangeUpgrade() { UpgradeRange(RangeUpgradeAmount); }
+
+    UFUNCTION(BlueprintCallable, Category = "Tower|Upgrades")
+    void ApplyDamageUpgrade() { UpgradeDamage(DamageUpgradeAmount); }
 
 private:
 
@@ -54,7 +85,4 @@ private:
 
     ANPCBase* FindTarget();
     void FireAtTarget();
-
-
-
 };

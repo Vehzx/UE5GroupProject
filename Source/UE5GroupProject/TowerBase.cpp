@@ -1,10 +1,20 @@
 #include "TowerBase.h"
 #include "NPCBase.h"
+#include "Projectile.h"
+#include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 ATowerBase::ATowerBase()
 {
     PrimaryActorTick.bCanEverTick = true;
+
+    CurrentTarget = nullptr;
+
+    TowerMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TowerMesh"));
+    RootComponent = TowerMesh;
+
+    MuzzlePoint = CreateDefaultSubobject<USceneComponent>(TEXT("MuzzlePoint"));
+    MuzzlePoint->SetupAttachment(TowerMesh);
 }
 
 void ATowerBase::BeginPlay()
@@ -24,19 +34,36 @@ void ATowerBase::SetPreview(bool bPreview)
 
 void ATowerBase::Tick(float DeltaTime)
 {
+    UE_LOG(LogTemp, Warning, TEXT("Tower ticking"));
     Super::Tick(DeltaTime);
 
     if (bIsPreview) return;
 
     TimeSinceLastShot += DeltaTime;
 
+    // Log current target status
+    if (CurrentTarget)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("CurrentTarget: %s"), *CurrentTarget->GetName());
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("CurrentTarget: NULL"));
+    }
+
+    // Log time since last shot
+    UE_LOG(LogTemp, Warning, TEXT("TimeSinceLastShot: %f"), TimeSinceLastShot);
+
+    // Acquire target if needed
     if (!IsValid(CurrentTarget) || CurrentTarget->IsActorBeingDestroyed())
     {
         CurrentTarget = FindTarget();
     }
 
+    // Check firing conditions
     if (CurrentTarget && TimeSinceLastShot >= FireRate)
     {
+        UE_LOG(LogTemp, Warning, TEXT("FireAtTarget() SHOULD FIRE NOW"));
         FireAtTarget();
         TimeSinceLastShot = 0.f;
     }
@@ -46,6 +73,8 @@ ANPCBase* ATowerBase::FindTarget()
 {
     TArray<AActor*> FoundNPCs;
     UGameplayStatics::GetAllActorsOfClass(GetWorld(), ANPCBase::StaticClass(), FoundNPCs);
+
+    UE_LOG(LogTemp, Warning, TEXT("Tower found %d NPCs"), FoundNPCs.Num());
 
     ANPCBase* Closest = nullptr;
     float ClosestDist = Range;
@@ -65,8 +94,25 @@ ANPCBase* ATowerBase::FindTarget()
 
 void ATowerBase::FireAtTarget()
 {
-    if (CurrentTarget)
+    if (ProjectileClass && CurrentTarget)
     {
-        CurrentTarget->ApplyDamage(Damage);
+        const FVector SpawnLocation = MuzzlePoint
+            ? MuzzlePoint->GetComponentLocation()
+            : GetActorLocation();
+
+        const FRotator SpawnRotation =
+            (CurrentTarget->GetActorLocation() - SpawnLocation).Rotation();
+
+        AProjectile* Proj = GetWorld()->SpawnActor<AProjectile>(
+            ProjectileClass,
+            SpawnLocation,
+            SpawnRotation
+        );
+
+        if (Proj)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Spawned projectile (OnHit): %s"), *Proj->GetName());
+            Proj->SetOwner(this);
+        }
     }
 }

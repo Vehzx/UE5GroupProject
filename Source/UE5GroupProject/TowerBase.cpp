@@ -20,6 +20,14 @@ ATowerBase::ATowerBase()
 void ATowerBase::BeginPlay()
 {
     Super::BeginPlay();
+
+    TArray<AActor*> Found;
+    UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("GoldManager"), Found);
+
+    if (Found.Num() > 0)
+    {
+        GoldManager = Cast<AGoldManager>(Found[0]);
+    }
 }
 
 void ATowerBase::SetPreview(bool bPreview)
@@ -134,4 +142,43 @@ void ATowerBase::UpgradeDamage(float Amount)
 {
     TowerDamage += Amount;
     UE_LOG(LogTemp, Warning, TEXT("Tower upgraded: Damage now %f"), TowerDamage);
+}
+
+void ATowerBase::ApplyFireRateUpgrade()
+{
+    if (GoldManager && GoldManager->SpendGold(FireRateUpgradeCost))
+    {
+        UpgradeFireRate(FireRateUpgradeAmount);
+        UE_LOG(LogTemp, Warning, TEXT("Fire rate upgraded!"));
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Not enough gold for fire rate upgrade."));
+    }
+}
+
+void ATowerBase::ApplyRangeUpgrade()
+{
+    if (GoldManager && GoldManager->SpendGold(RangeUpgradeCost))
+    {
+        UpgradeRange(RangeUpgradeAmount);
+        UE_LOG(LogTemp, Warning, TEXT("Range upgraded!"));
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Not enough gold for range upgrade."));
+    }
+}
+
+void ATowerBase::ApplyDamageUpgrade()
+{
+    if (GoldManager && GoldManager->SpendGold(DamageUpgradeCost))
+    {
+        UpgradeDamage(DamageUpgradeAmount);
+        UE_LOG(LogTemp, Warning, TEXT("Damage upgraded!"));
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Not enough gold for damage upgrade."));
+    }
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GoldManager.h"
 #include "GameFramework/Actor.h"
 #include "Projectile.h"
 #include "TowerBase.generated.h"
@@ -65,14 +66,26 @@ public:
 
     // --- Blueprint Wrappers ---
     UFUNCTION(BlueprintCallable, Category = "Tower|Upgrades")
-    void ApplyFireRateUpgrade() { UpgradeFireRate(FireRateUpgradeAmount); }
+    void ApplyFireRateUpgrade();
 
     UFUNCTION(BlueprintCallable, Category = "Tower|Upgrades")
-    void ApplyRangeUpgrade() { UpgradeRange(RangeUpgradeAmount); }
+    void ApplyRangeUpgrade();
 
     UFUNCTION(BlueprintCallable, Category = "Tower|Upgrades")
-    void ApplyDamageUpgrade() { UpgradeDamage(DamageUpgradeAmount); }
+    void ApplyDamageUpgrade();
 
+    // --- Upgrade Costs ---
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tower|Upgrades")
+    int32 FireRateUpgradeCost = 50;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tower|Upgrades")
+    int32 RangeUpgradeCost = 40;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tower|Upgrades")
+    int32 DamageUpgradeCost = 60;
+
+    UPROPERTY()
+    AGoldManager* GoldManager;
 private:
 
     UPROPERTY()

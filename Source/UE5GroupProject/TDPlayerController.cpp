@@ -46,10 +46,27 @@ void ATDPlayerController::PlayerTick(float DeltaTime)
     }
 }
 
+void ATDPlayerController::Tick(float DeltaSeconds)
+{
+    Super::Tick(DeltaSeconds);
+
+    if (bIsPlacing && PreviewTower)
+    {
+        FVector Loc = PreviewTower->GetActorLocation();
+        Loc.Z = 100.f; // or whatever your landscape height is
+        PreviewTower->SetActorLocation(Loc);
+    }
+}
+
 void ATDPlayerController::StartBuildMode()
 {
+    UE_LOG(LogTemp, Warning, TEXT("StartBuildMode called"));
+
     if (!TowerToBuild)
+    {
+        UE_LOG(LogTemp, Error, TEXT("StartBuildMode: TowerToBuild is NULL"));
         return;
+    }
 
     CancelBuildMode();
     bIsPlacing = true;
@@ -57,17 +74,28 @@ void ATDPlayerController::StartBuildMode()
     FHitResult Hit;
     if (!GetHitResultUnderCursor(ECC_Visibility, true, Hit))
     {
+        UE_LOG(LogTemp, Error, TEXT("StartBuildMode: GetHitResultUnderCursor failed"));
         bIsPlacing = false;
         return;
     }
 
     FVector SpawnLoc = Hit.ImpactPoint;
 
+    // Grid snap
     if (GridSize > 0.f)
     {
         SpawnLoc.X = FMath::GridSnap(SpawnLoc.X, GridSize);
         SpawnLoc.Y = FMath::GridSnap(SpawnLoc.Y, GridSize);
     }
+
+    // SAFETY CLAMP
+    if (SpawnLoc.Z < 99.f)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("SpawnLoc was below world! Clamping from %f to 100."), SpawnLoc.Z);
+        SpawnLoc.Z = 100.f;
+    }
+
+    UE_LOG(LogTemp, Warning, TEXT("StartBuildMode: Intended SpawnLoc.Z = %f"), SpawnLoc.Z);
 
     FActorSpawnParameters Params;
     Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -81,28 +109,60 @@ void ATDPlayerController::StartBuildMode()
 
     if (PreviewTower)
     {
+        // CRITICAL FIX: Disable collision so Unreal stops pushing the actor down
+        PreviewTower->SetActorEnableCollision(false);
+        PreviewTower->TowerMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+        // Now compute bounds
+        FVector Origin, Extent;
+        PreviewTower->GetActorBounds(true, Origin, Extent);
+
+        // Lowest point of the mesh in world space
+        float LowestPointZ = Origin.Z - Extent.Z;
+
+        // Lift actor so lowest point sits exactly on the ground
+        FVector Loc = PreviewTower->GetActorLocation();
+        Loc.Z -= LowestPointZ;
+        PreviewTower->SetActorLocation(Loc);
+
+        UE_LOG(LogTemp, Warning, TEXT("Preview adjusted: LowestPointZ=%f FinalZ=%f"), LowestPointZ, Loc.Z);
+
         PreviewTower->SetPreview(true);
         PreviewTower->SetActorHiddenInGame(false);
     }
-}
-
-void ATDPlayerController::CancelBuildMode()
-{
-    bIsPlacing = false;
-
-    if (PreviewTower)
+    else
     {
-        PreviewTower->Destroy();
-        PreviewTower = nullptr;
+        UE_LOG(LogTemp, Error, TEXT("StartBuildMode: FAILED to spawn PreviewTower"));
     }
 }
 
 void ATDPlayerController::ConfirmPlaceTower()
 {
-    if (!bIsPlacing || !PreviewTower || !TowerToBuild)
-        return;
+    UE_LOG(LogTemp, Warning, TEXT("ConfirmPlaceTower called"));
 
-    const FVector PlaceLoc = PreviewTower->GetActorLocation();
+    if (!bIsPlacing || !PreviewTower || !TowerToBuild)
+    {
+        UE_LOG(LogTemp, Error, TEXT("ConfirmPlaceTower: invalid state. bIsPlacing=%d, PreviewTower=%s, TowerToBuild=%s"),
+            bIsPlacing ? 1 : 0,
+            *GetNameSafe(PreviewTower),
+            *GetNameSafe(TowerToBuild.Get())
+        );
+        return;
+    }
+
+    FHitResult Hit;
+    if (!GetHitResultUnderCursor(ECC_Visibility, true, Hit))
+    {
+        UE_LOG(LogTemp, Error, TEXT("ConfirmPlaceTower: Failed ground trace"));
+        return;
+    }
+
+    FVector PlaceLoc = Hit.ImpactPoint;
+    PlaceLoc.Z = 100.f; // your landscape height or ground baseline
+
+
+    //  LOG: Where we *think* the tower is being placed
+    UE_LOG(LogTemp, Warning, TEXT("ConfirmPlaceTower: Intended PlaceLoc.Z = %f"), PlaceLoc.Z);
 
     FActorSpawnParameters Params;
     Params.SpawnCollisionHandlingOverride =
@@ -119,6 +179,21 @@ void ATDPlayerController::ConfirmPlaceTower()
     {
         NewTower->SetPreview(false);
     }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("ConfirmPlaceTower: FAILED to spawn NewTower"));
+    }
 
     CancelBuildMode();
+}
+
+void ATDPlayerController::CancelBuildMode()
+{
+    bIsPlacing = false;
+
+    if (PreviewTower)
+    {
+        PreviewTower->Destroy();
+        PreviewTower = nullptr;
+    }
 }

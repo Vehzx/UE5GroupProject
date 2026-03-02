@@ -1,12 +1,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GoldManager.h"
 #include "GameFramework/Actor.h"
 #include "Projectile.h"
 #include "TowerBase.generated.h"
 
 class ANPCBase;
+class AGoldManager;
 
 UCLASS()
 class UE5GROUPPROJECT_API ATowerBase : public AActor
@@ -27,7 +27,6 @@ protected:
     virtual void Tick(float DeltaTime) override;
 
 public:
-
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tower")
     USceneComponent* MuzzlePoint;
 
@@ -36,7 +35,7 @@ public:
     float Range = 800.f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tower|Stats")
-    float FireRate = 1.f;
+    float FireRate = 1.f; // seconds between shots
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tower|Stats")
     float TowerDamage = 10.f;
@@ -44,7 +43,7 @@ public:
     UPROPERTY(EditAnywhere, Category = "Tower")
     TSubclassOf<AProjectile> ProjectileClass;
 
-    // --- Upgrade Values (editable per tower) ---
+    // --- Upgrade Values (per tower) ---
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tower|Upgrades")
     float FireRateUpgradeAmount = 0.2f;
 
@@ -53,26 +52,6 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tower|Upgrades")
     float DamageUpgradeAmount = 5.f;
-
-    // --- Upgrade Functions ---
-    UFUNCTION(BlueprintCallable, Category = "Tower|Upgrades")
-    void UpgradeFireRate(float Amount);
-
-    UFUNCTION(BlueprintCallable, Category = "Tower|Upgrades")
-    void UpgradeRange(float Amount);
-
-    UFUNCTION(BlueprintCallable, Category = "Tower|Upgrades")
-    void UpgradeDamage(float Amount);
-
-    // --- Blueprint Wrappers ---
-    UFUNCTION(BlueprintCallable, Category = "Tower|Upgrades")
-    void ApplyFireRateUpgrade();
-
-    UFUNCTION(BlueprintCallable, Category = "Tower|Upgrades")
-    void ApplyRangeUpgrade();
-
-    UFUNCTION(BlueprintCallable, Category = "Tower|Upgrades")
-    void ApplyDamageUpgrade();
 
     // --- Upgrade Costs ---
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tower|Upgrades")
@@ -84,17 +63,37 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tower|Upgrades")
     int32 DamageUpgradeCost = 60;
 
-    UPROPERTY()
-    AGoldManager* GoldManager;
-private:
+    // --- Raw stat upgrade functions ---
+    UFUNCTION(BlueprintCallable, Category = "Tower|Upgrades")
+    void UpgradeFireRate(float Amount);
 
+    UFUNCTION(BlueprintCallable, Category = "Tower|Upgrades")
+    void UpgradeRange(float Amount);
+
+    UFUNCTION(BlueprintCallable, Category = "Tower|Upgrades")
+    void UpgradeDamage(float Amount);
+
+    // --- Gold-checked wrappers for UI / gameplay ---
+    UFUNCTION(BlueprintCallable, Category = "Tower|Upgrades")
+    void ApplyFireRateUpgrade();
+
+    UFUNCTION(BlueprintCallable, Category = "Tower|Upgrades")
+    void ApplyRangeUpgrade();
+
+    UFUNCTION(BlueprintCallable, Category = "Tower|Upgrades")
+    void ApplyDamageUpgrade();
+
+private:
     UPROPERTY()
     bool bIsPreview = false;
 
     float TimeSinceLastShot = 0.f;
 
     UPROPERTY()
-    ANPCBase* CurrentTarget;
+    ANPCBase* CurrentTarget = nullptr;
+
+    UPROPERTY()
+    AGoldManager* GoldManager = nullptr;
 
     ANPCBase* FindTarget();
     void FireAtTarget();

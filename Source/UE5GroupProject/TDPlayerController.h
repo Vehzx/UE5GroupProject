@@ -19,6 +19,7 @@ protected:
     virtual void BeginPlay() override;
     virtual void PlayerTick(float DeltaTime) override;
     virtual void SetupInputComponent() override;
+    virtual void Tick(float DeltaSeconds) override;
 
 private:
     // Set this in editor to choose which tower to place

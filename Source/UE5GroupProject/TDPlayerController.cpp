@@ -1,12 +1,15 @@
 #include "TDPlayerController.h"
 #include "TowerBase.h"
 #include "Engine/World.h"
+#include "PlayerStatsComponent.h"
 
 ATDPlayerController::ATDPlayerController()
 {
     bShowMouseCursor = true;
     bEnableClickEvents = true;
     bEnableMouseOverEvents = true;
+
+    PlayerStats = CreateDefaultSubobject<UPlayerStatsComponent>(TEXT("PlayerStats"));
 }
 
 void ATDPlayerController::BeginPlay()
@@ -140,6 +143,7 @@ void ATDPlayerController::ConfirmPlaceTower()
 {
     UE_LOG(LogTemp, Warning, TEXT("ConfirmPlaceTower called"));
 
+    // Validate state
     if (!bIsPlacing || !PreviewTower || !TowerToBuild)
     {
         UE_LOG(LogTemp, Error, TEXT("ConfirmPlaceTower: invalid state. bIsPlacing=%d, PreviewTower=%s, TowerToBuild=%s"),
@@ -150,6 +154,21 @@ void ATDPlayerController::ConfirmPlaceTower()
         return;
     }
 
+    // -----------------------------
+    //  Tower Cost Check
+    // -----------------------------
+    const int32 TowerCost = 50; // TODO: Move to TowerBase or data table
+
+    if (!PlayerStats || !PlayerStats->SpendGold(TowerCost))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Not enough gold to place tower!"));
+        CancelBuildMode(); // Remove preview
+        return;
+    }
+
+    // -----------------------------
+    //  Get placement location
+    // -----------------------------
     FHitResult Hit;
     if (!GetHitResultUnderCursor(ECC_Visibility, true, Hit))
     {
@@ -158,16 +177,15 @@ void ATDPlayerController::ConfirmPlaceTower()
     }
 
     FVector PlaceLoc = Hit.ImpactPoint;
-    PlaceLoc.Z = 100.f; // your landscape height or ground baseline
-
-
-    //  LOG: Where we *think* the tower is being placed
-    UE_LOG(LogTemp, Warning, TEXT("ConfirmPlaceTower: Intended PlaceLoc.Z = %f"), PlaceLoc.Z);
+    PlaceLoc.Z = 100.f; // Your ground baseline
 
     FActorSpawnParameters Params;
     Params.SpawnCollisionHandlingOverride =
         ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
+    // -----------------------------
+    //  Spawn the actual tower
+    // -----------------------------
     ATowerBase* NewTower = GetWorld()->SpawnActor<ATowerBase>(
         TowerToBuild,
         PlaceLoc,
@@ -182,6 +200,8 @@ void ATDPlayerController::ConfirmPlaceTower()
     else
     {
         UE_LOG(LogTemp, Error, TEXT("ConfirmPlaceTower: FAILED to spawn NewTower"));
+        // Refund gold if spawn failed
+        PlayerStats->AddGold(TowerCost);
     }
 
     CancelBuildMode();

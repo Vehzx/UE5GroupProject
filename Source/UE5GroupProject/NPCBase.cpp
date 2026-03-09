@@ -3,6 +3,8 @@
 #include "Blueprint/UserWidget.h"
 #include "EnemyHealthBarWidget.h"
 #include "Components/ProgressBar.h"
+#include "PlayerStatsComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 ANPCBase::ANPCBase()
 {
@@ -36,6 +38,20 @@ void ANPCBase::OnDeath_Implementation()
     // Actual death logic is handled in ApplyDamage().
 }
 
+void ANPCBase::HandleReachedGoal()
+{
+    // Get PlayerStats from PlayerController
+    if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+    {
+        if (UPlayerStatsComponent* Stats = PC->FindComponentByClass<UPlayerStatsComponent>())
+        {
+            Stats->ApplyDamageToPlayer(10.f); // Damage amount per escaped enemy
+        }
+    }
+
+    Destroy(); // Remove NPC from the world
+}
+
 void ANPCBase::ApplyDamage(float DamageAmount)
 {
     UE_LOG(LogTemp, Warning, TEXT("ANPCBase::ApplyDamage called on %s, DamageAmount: %f (CurrentHealth: %f)"),
@@ -51,6 +67,11 @@ void ANPCBase::ApplyDamage(float DamageAmount)
 
     if (CurrentHealth <= 0.f)
     {
+        if (AGoldManager* GM = GoldManager)
+        {
+            GM->AddGold(10); // temporary, can add tower specific rewards later
+        }
+
         UE_LOG(LogTemp, Warning, TEXT("%s died"), *GetName());
         OnDeath();
         Destroy();

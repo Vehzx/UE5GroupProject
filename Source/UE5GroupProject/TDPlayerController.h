@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "PlayerStatsComponent.h"
 #include "TDPlayerController.generated.h"
 
 
@@ -14,6 +15,9 @@ class UE5GROUPPROJECT_API ATDPlayerController : public APlayerController
 
 public:
     ATDPlayerController();
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    UPlayerStatsComponent* PlayerStats;
 
 protected:
     virtual void BeginPlay() override;

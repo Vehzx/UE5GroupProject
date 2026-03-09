@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "IDamageable.h"
 #include "GameFramework/Character.h"
+#include "GoldManager.h"
 #include "NPCBase.generated.h"
 
 UCLASS()
@@ -13,10 +14,6 @@ class UE5GROUPPROJECT_API ANPCBase : public ACharacter, public IDamageable
 public:
     ANPCBase();
 
-protected:
-    virtual void BeginPlay() override;
-
-public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NPC|Stats")
     float MaxHealth = 100.f;
 
@@ -32,4 +29,14 @@ public:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
     class UWidgetComponent* HealthWidgetComponent;
+
+    UFUNCTION(BlueprintCallable)
+    void HandleReachedGoal();
+
+protected:
+    virtual void BeginPlay() override;
+
+private:
+    UPROPERTY()
+    AGoldManager* GoldManager = nullptr;
 };

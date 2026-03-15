@@ -53,11 +53,26 @@ void ATowerBase::Tick(float DeltaTime)
 
     TimeSinceLastShot += DeltaTime;
 
+    // Drop target if it leaves range
+    if (CurrentTarget)
+    {
+        float Dist = FVector::Dist(CurrentTarget->GetActorLocation(), GetActorLocation());
+        if (Dist > Range)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Target %s left range. Dropping target."),
+                *CurrentTarget->GetName());
+
+            CurrentTarget = nullptr;
+        }
+    }
+
+    // Acquire new target if needed
     if (!IsValid(CurrentTarget) || CurrentTarget->IsActorBeingDestroyed())
     {
         CurrentTarget = FindTarget();
     }
 
+    // Fire if valid target
     if (CurrentTarget && TimeSinceLastShot >= FireRate)
     {
         FireAtTarget();
@@ -67,6 +82,10 @@ void ATowerBase::Tick(float DeltaTime)
 
 ANPCBase* ATowerBase::FindTarget()
 {
+    UE_LOG(LogTemp, Warning, TEXT("---- Tower FindTarget() ----"));
+    UE_LOG(LogTemp, Warning, TEXT("Tower Location: %s | Range: %f"),
+        *GetActorLocation().ToString(), Range);
+
     TArray<AActor*> FoundNPCs;
     UGameplayStatics::GetAllActorsOfClass(GetWorld(), ANPCBase::StaticClass(), FoundNPCs);
 
@@ -76,11 +95,35 @@ ANPCBase* ATowerBase::FindTarget()
     for (AActor* Actor : FoundNPCs)
     {
         const float Dist = FVector::Dist(Actor->GetActorLocation(), GetActorLocation());
+
+        UE_LOG(LogTemp, Warning, TEXT("Checking NPC %s | NPC Location: %s | Dist: %f"),
+            *Actor->GetName(),
+            *Actor->GetActorLocation().ToString(),
+            Dist);
+
         if (Dist <= Range && Dist < ClosestDist)
         {
+            UE_LOG(LogTemp, Warning, TEXT(" -> NPC %s is now closest valid target (Dist: %f)"),
+                *Actor->GetName(), Dist);
+
             Closest = Cast<ANPCBase>(Actor);
             ClosestDist = Dist;
         }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT(" -> NPC %s rejected (Dist: %f, Range: %f)"),
+                *Actor->GetName(), Dist, Range);
+        }
+    }
+
+    if (Closest)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("FINAL TARGET: %s at Dist: %f"),
+            *Closest->GetName(), ClosestDist);
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("FINAL TARGET: None (no NPCs in range)"));
     }
 
     return Closest;

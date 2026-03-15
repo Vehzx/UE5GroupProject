@@ -16,6 +16,8 @@ class UE5GROUPPROJECT_API UPlayerStatsComponent : public UActorComponent
 public:
     UPlayerStatsComponent();
 
+    virtual void BeginPlay() override;
+
     // --- Player Health ---
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player Stats")
     float MaxHealth = 100.f;

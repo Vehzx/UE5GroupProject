@@ -19,6 +19,18 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     UPlayerStatsComponent* PlayerStats;
 
+    UFUNCTION()
+    void HandlePlayerDeath();
+
+    UFUNCTION()
+    void DebugKillPlayer();
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
+    TSubclassOf<UUserWidget> GameOverScreenClass;
+
+    UFUNCTION(BlueprintCallable)
+    void RestartGame();
+
 protected:
     virtual void BeginPlay() override;
     virtual void PlayerTick(float DeltaTime) override;

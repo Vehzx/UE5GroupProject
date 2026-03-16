@@ -2,6 +2,9 @@
 #include "TowerBase.h"
 #include "Engine/World.h"
 #include "PlayerStatsComponent.h"
+#include "Blueprint/UserWidget.h"
+#include "Blueprint/WidgetBlueprintLibrary.h"
+#include "Kismet/GameplayStatics.h"
 
 ATDPlayerController::ATDPlayerController()
 {
@@ -15,7 +18,17 @@ ATDPlayerController::ATDPlayerController()
 void ATDPlayerController::BeginPlay()
 {
     Super::BeginPlay();
+
+    // Restore normal game input after level restart
+    SetInputMode(FInputModeGameOnly());
+    SetShowMouseCursor(false);
+
+    if (PlayerStats)
+    {
+        PlayerStats->OnPlayerDeath.AddDynamic(this, &ATDPlayerController::HandlePlayerDeath);
+    }
 }
+
 
 void ATDPlayerController::SetupInputComponent()
 {
@@ -24,6 +37,7 @@ void ATDPlayerController::SetupInputComponent()
     InputComponent->BindAction("BuildMode", IE_Pressed, this, &ATDPlayerController::StartBuildMode);
     InputComponent->BindAction("ConfirmBuild", IE_Pressed, this, &ATDPlayerController::ConfirmPlaceTower);
     InputComponent->BindAction("CancelBuild", IE_Pressed, this, &ATDPlayerController::CancelBuildMode);
+    InputComponent->BindAction("DebugKillPlayer", IE_Pressed, this, &ATDPlayerController::DebugKillPlayer);
 }
 
 void ATDPlayerController::PlayerTick(float DeltaTime)
@@ -47,6 +61,41 @@ void ATDPlayerController::PlayerTick(float DeltaTime)
 
         PreviewTower->SetActorLocation(Loc);
     }
+}
+
+void ATDPlayerController::DebugKillPlayer()
+{
+    if (PlayerStats)
+    {
+        PlayerStats->ApplyDamageToPlayer(9999.f);
+    }
+}
+
+void ATDPlayerController::HandlePlayerDeath()
+{
+    UE_LOG(LogTemp, Warning, TEXT("Player died — showing Game Over screen"));
+
+    UGameplayStatics::SetGamePaused(GetWorld(), true);
+
+    if (GameOverScreenClass)
+    {
+        UUserWidget* GameOverWidget = CreateWidget<UUserWidget>(this, GameOverScreenClass);
+        if (GameOverWidget)
+        {
+            GameOverWidget->AddToViewport();
+            SetShowMouseCursor(true);
+            SetInputMode(FInputModeUIOnly());
+        }
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("GameOverScreenClass is NOT set in PlayerController!"));
+    }
+}
+
+void ATDPlayerController::RestartGame()
+{
+    UGameplayStatics::OpenLevel(this, FName(*GetWorld()->GetName()));
 }
 
 void ATDPlayerController::Tick(float DeltaSeconds)

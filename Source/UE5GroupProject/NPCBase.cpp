@@ -26,10 +26,6 @@ void ANPCBase::BeginPlay()
 {
     Super::BeginPlay();
     CurrentHealth = MaxHealth;
-
-    // Temporary damage call for testing. 
-    // Remove once proper tower damage is implemented.
-    ApplyDamage(20.f);
 }
 
 void ANPCBase::OnDeath_Implementation()

@@ -32,6 +32,16 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player Stats")
     int32 CurrentGold;
 
+    // --- Run Statistics ---
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player Stats")
+    int32 GoldEarned = 0;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player Stats")
+    int32 GoldSpent = 0;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player Stats")
+    int32 EnemiesKilled = 0;
+
     // --- Events for UI ---
     UPROPERTY(BlueprintAssignable)
     FOnPlayerDeath OnPlayerDeath;

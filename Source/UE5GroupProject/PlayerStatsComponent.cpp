@@ -24,6 +24,7 @@ bool UPlayerStatsComponent::SpendGold(int32 Amount)
     {
         CurrentGold -= Amount;
         UE_LOG(LogTemp, Warning, TEXT("Gold spent. CurrentGold AFTER: %d"), CurrentGold);
+        GoldSpent += Amount;
 
         OnGoldChanged.Broadcast(CurrentGold, -Amount);
         return true;
@@ -38,6 +39,7 @@ void UPlayerStatsComponent::AddGold(int32 Amount)
     UE_LOG(LogTemp, Warning, TEXT("PlayerStatsComponent::AddGold called. Amount: %d, CurrentGold BEFORE: %d"), Amount, CurrentGold);
 
     CurrentGold += Amount;
+    GoldEarned += Amount;
 
     UE_LOG(LogTemp, Warning, TEXT("PlayerStatsComponent::AddGold complete. CurrentGold AFTER: %d"), CurrentGold);
 

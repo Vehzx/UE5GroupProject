@@ -1,4 +1,6 @@
 #include "GoldManager.h"
+#include "PlayerStatsComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 AGoldManager::AGoldManager()
 {
@@ -28,4 +30,13 @@ void AGoldManager::AddGold(int32 Amount)
     CurrentGold += Amount;
 
     UE_LOG(LogTemp, Warning, TEXT("GoldManager::AddGold complete. CurrentGold AFTER: %d"), CurrentGold);
+
+    // Forward the gold from the manager to PlayerStatsComponent
+    if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+    {
+        if (UPlayerStatsComponent* Stats = PC->FindComponentByClass<UPlayerStatsComponent>())
+        {
+            Stats->AddGold(Amount);
+        }
+    }
 }

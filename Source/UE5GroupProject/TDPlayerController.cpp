@@ -5,6 +5,7 @@
 #include "Blueprint/UserWidget.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Kismet/GameplayStatics.h"
+#include "GameOverWidget.h"
 
 ATDPlayerController::ATDPlayerController()
 {
@@ -79,12 +80,32 @@ void ATDPlayerController::HandlePlayerDeath()
 
     if (GameOverScreenClass)
     {
-        UUserWidget* GameOverWidget = CreateWidget<UUserWidget>(this, GameOverScreenClass);
-        if (GameOverWidget)
+        UUserWidget* Widget = CreateWidget<UUserWidget>(this, GameOverScreenClass);
+        if (Widget)
         {
-            GameOverWidget->AddToViewport();
+            Widget->AddToViewport();
             SetShowMouseCursor(true);
             SetInputMode(FInputModeUIOnly());
+
+            // -----------------------------
+            // NEW: Pass stats to Game Over UI
+            // -----------------------------
+            if (PlayerStats)
+            {
+                // Cast to your typed widget class
+                if (UGameOverWidget* TypedWidget = Cast<UGameOverWidget>(Widget))
+                {
+                    TypedWidget->SetGameOverStats(
+                        PlayerStats->GoldEarned,
+                        PlayerStats->GoldSpent,
+                        PlayerStats->EnemiesKilled
+                    );
+                }
+                else
+                {
+                    UE_LOG(LogTemp, Error, TEXT("GameOverScreenClass is NOT a UGameOverWidget!"));
+                }
+            }
         }
     }
     else

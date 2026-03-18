@@ -26,6 +26,14 @@ void ANPCBase::BeginPlay()
 {
     Super::BeginPlay();
     CurrentHealth = MaxHealth;
+
+    // Find GoldManager in the world
+    GoldManager = Cast<AGoldManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AGoldManager::StaticClass()));
+
+    if (!GoldManager)
+    {
+        UE_LOG(LogTemp, Error, TEXT("NPCBase: GoldManager NOT FOUND in level!"));
+    }
 }
 
 void ANPCBase::OnDeath_Implementation()
@@ -63,9 +71,19 @@ void ANPCBase::ApplyDamage(float DamageAmount)
 
     if (CurrentHealth <= 0.f)
     {
+        // Reward gold
         if (AGoldManager* GM = GoldManager)
         {
             GM->AddGold(10); // temporary, can add tower specific rewards later
+        }
+
+        if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+        {
+            if (UPlayerStatsComponent* Stats = PC->FindComponentByClass<UPlayerStatsComponent>())
+            {
+                Stats->EnemiesKilled++;
+                UE_LOG(LogTemp, Warning, TEXT("EnemiesKilled incremented. Total: %d"), Stats->EnemiesKilled);
+            }
         }
 
         UE_LOG(LogTemp, Warning, TEXT("%s died"), *GetName());

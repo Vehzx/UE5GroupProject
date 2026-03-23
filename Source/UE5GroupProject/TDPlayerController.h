@@ -31,6 +31,20 @@ public:
     UFUNCTION(BlueprintCallable)
     void RestartGame();
 
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
+    TSubclassOf<UUserWidget> PlayerHUDClass;
+
+    UFUNCTION()
+    void OnHealthChanged(float NewHealth, float Delta);
+
+    UFUNCTION()
+    void OnGoldChanged(int32 NewGold, int32 Delta);
+
+    UFUNCTION()
+    UPlayerHUDWidget* GetHUDWidget() const;
+
+    UPlayerHUDWidget* HUDWidget;
+
 protected:
     virtual void BeginPlay() override;
     virtual void PlayerTick(float DeltaTime) override;

@@ -6,6 +6,7 @@
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameOverWidget.h"
+#include "PlayerHUDWidget.h"
 
 ATDPlayerController::ATDPlayerController()
 {
@@ -24,10 +25,42 @@ void ATDPlayerController::BeginPlay()
     SetInputMode(FInputModeGameOnly());
     SetShowMouseCursor(false);
 
+    // -----------------------------
+    // Create and store the HUD widget
+    // -----------------------------
+    if (PlayerHUDClass)
+    {
+        HUDWidget = Cast<UPlayerHUDWidget>(CreateWidget(this, PlayerHUDClass));
+
+        if (HUDWidget)
+        {
+            HUDWidget->AddToViewport();
+
+            // -----------------------------
+            // Initialize HUD with current stats
+            // -----------------------------
+            if (PlayerStats)
+            {
+                HUDWidget->UpdateHealth(PlayerStats->CurrentHealth);
+                HUDWidget->UpdateGold(PlayerStats->CurrentGold);
+            }
+        }
+    }
+
+    // -----------------------------
+    // Bind PlayerStats events
+    // -----------------------------
     if (PlayerStats)
     {
         PlayerStats->OnPlayerDeath.AddDynamic(this, &ATDPlayerController::HandlePlayerDeath);
+        PlayerStats->OnHealthChanged.AddDynamic(this, &ATDPlayerController::OnHealthChanged);
+        PlayerStats->OnGoldChanged.AddDynamic(this, &ATDPlayerController::OnGoldChanged);
     }
+}
+
+UPlayerHUDWidget* ATDPlayerController::GetHUDWidget() const
+{
+    return HUDWidget;
 }
 
 
@@ -64,6 +97,22 @@ void ATDPlayerController::PlayerTick(float DeltaTime)
     }
 }
 
+void ATDPlayerController::OnHealthChanged(float NewHealth, float Delta)
+{
+    if (auto HUD = Cast<UPlayerHUDWidget>(GetHUDWidget()))
+    {
+        HUD->UpdateHealth(NewHealth);
+    }
+}
+
+void ATDPlayerController::OnGoldChanged(int32 NewGold, int32 Delta)
+{
+    if (auto HUD = Cast<UPlayerHUDWidget>(GetHUDWidget()))
+    {
+        HUD->UpdateGold(NewGold);
+    }
+}
+
 void ATDPlayerController::DebugKillPlayer()
 {
     if (PlayerStats)
@@ -88,7 +137,7 @@ void ATDPlayerController::HandlePlayerDeath()
             SetInputMode(FInputModeUIOnly());
 
             // -----------------------------
-            // NEW: Pass stats to Game Over UI
+            // Pass stats to Game Over UI
             // -----------------------------
             if (PlayerStats)
             {
@@ -182,7 +231,7 @@ void ATDPlayerController::StartBuildMode()
 
     if (PreviewTower)
     {
-        // CRITICAL FIX: Disable collision so Unreal stops pushing the actor down
+        // Disable collision so Unreal stops pushing the actor down
         PreviewTower->SetActorEnableCollision(false);
         PreviewTower->TowerMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
@@ -227,7 +276,7 @@ void ATDPlayerController::ConfirmPlaceTower()
     // -----------------------------
     //  Tower Cost Check
     // -----------------------------
-    const int32 TowerCost = 50; // TODO: Move to TowerBase or data table
+    const int32 TowerCost = 50;
 
     if (!PlayerStats || !PlayerStats->SpendGold(TowerCost))
     {

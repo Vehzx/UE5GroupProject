@@ -45,6 +45,9 @@ public:
 
     UPlayerHUDWidget* HUDWidget;
 
+    UFUNCTION(BlueprintCallable)
+    void StartWaveCountdown(float Delay);
+
 protected:
     virtual void BeginPlay() override;
     virtual void PlayerTick(float DeltaTime) override;
@@ -69,4 +72,14 @@ private:
     //placement settings
     UPROPERTY(EditDefaultsOnly, Category = "Build")
     float GridSize = 200.f;
+
+    UFUNCTION()
+    void UpdateWaveTimerHUD(float TimeRemaining);
+
+    UFUNCTION(BlueprintCallable)
+    void UpdateWaveNumberHUD(int32 WaveNumber, int32 TotalWaves);
+
+    FTimerHandle WaveCountdownHandle;
+    float WaveCountdownRemaining = 0.f;
+    void TickWaveCountdown();
 };

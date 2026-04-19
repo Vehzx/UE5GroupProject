@@ -9,8 +9,6 @@ ATowerBase::ATowerBase()
 {
     PrimaryActorTick.bCanEverTick = true;
 
-    UE_LOG(LogTemp, Warning, TEXT("ATowerBase constructor called"));
-
     TowerMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TowerMesh"));
     RootComponent = TowerMesh;
 
@@ -59,9 +57,6 @@ void ATowerBase::Tick(float DeltaTime)
         float Dist = FVector::Dist(CurrentTarget->GetActorLocation(), GetActorLocation());
         if (Dist > Range)
         {
-            UE_LOG(LogTemp, Warning, TEXT("Target %s left range. Dropping target."),
-                *CurrentTarget->GetName());
-
             CurrentTarget = nullptr;
         }
     }
@@ -82,10 +77,6 @@ void ATowerBase::Tick(float DeltaTime)
 
 ANPCBase* ATowerBase::FindTarget()
 {
-    UE_LOG(LogTemp, Warning, TEXT("---- Tower FindTarget() ----"));
-    UE_LOG(LogTemp, Warning, TEXT("Tower Location: %s | Range: %f"),
-        *GetActorLocation().ToString(), Range);
-
     TArray<AActor*> FoundNPCs;
     UGameplayStatics::GetAllActorsOfClass(GetWorld(), ANPCBase::StaticClass(), FoundNPCs);
 
@@ -96,34 +87,11 @@ ANPCBase* ATowerBase::FindTarget()
     {
         const float Dist = FVector::Dist(Actor->GetActorLocation(), GetActorLocation());
 
-        UE_LOG(LogTemp, Warning, TEXT("Checking NPC %s | NPC Location: %s | Dist: %f"),
-            *Actor->GetName(),
-            *Actor->GetActorLocation().ToString(),
-            Dist);
-
         if (Dist <= Range && Dist < ClosestDist)
         {
-            UE_LOG(LogTemp, Warning, TEXT(" -> NPC %s is now closest valid target (Dist: %f)"),
-                *Actor->GetName(), Dist);
-
             Closest = Cast<ANPCBase>(Actor);
             ClosestDist = Dist;
         }
-        else
-        {
-            UE_LOG(LogTemp, Warning, TEXT(" -> NPC %s rejected (Dist: %f, Range: %f)"),
-                *Actor->GetName(), Dist, Range);
-        }
-    }
-
-    if (Closest)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("FINAL TARGET: %s at Dist: %f"),
-            *Closest->GetName(), ClosestDist);
-    }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("FINAL TARGET: None (no NPCs in range)"));
     }
 
     return Closest;
@@ -163,7 +131,6 @@ void ATowerBase::FireAtTarget()
 
 void ATowerBase::UpgradeFireRate(float Amount)
 {
-    // Lower FireRate = faster shooting, clamp to avoid zero/negative
     FireRate = FMath::Max(0.1f, FireRate - Amount);
 }
 

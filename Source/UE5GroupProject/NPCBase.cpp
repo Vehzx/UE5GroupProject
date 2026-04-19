@@ -58,9 +58,6 @@ void ANPCBase::HandleReachedGoal()
 
 void ANPCBase::ApplyDamage(float DamageAmount)
 {
-    UE_LOG(LogTemp, Warning, TEXT("ANPCBase::ApplyDamage called on %s, DamageAmount: %f (CurrentHealth: %f)"),
-        *GetName(), DamageAmount, CurrentHealth);
-
     CurrentHealth -= DamageAmount;
 
     if (UEnemyHealthBarWidget* HealthWidget =

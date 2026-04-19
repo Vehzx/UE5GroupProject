@@ -8,9 +8,6 @@ void UEnemyHealthBarWidget::NativeConstruct()
 
 void UEnemyHealthBarWidget::SetHealth(float Current, float Max)
 {
-    // Keep logs for now, testing purposes! -Luke
-    UE_LOG(LogTemp, Warning, TEXT("SetHealth called: %f / %f"), Current, Max);
-
     // Update the progress bar if the binding succeeded.
     if (HealthBar)
     {

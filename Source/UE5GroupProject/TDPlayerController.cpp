@@ -121,6 +121,41 @@ void ATDPlayerController::DebugKillPlayer()
     }
 }
 
+void ATDPlayerController::UpdateWaveTimerHUD(float TimeRemaining)
+{
+    if (HUDWidget)
+        HUDWidget->UpdateWaveTimer(TimeRemaining);
+}
+
+void ATDPlayerController::UpdateWaveNumberHUD(int32 WaveNumber, int32 TotalWaves)
+{
+    if (HUDWidget)
+        HUDWidget->UpdateWaveNumber(WaveNumber, TotalWaves);
+}
+
+void ATDPlayerController::StartWaveCountdown(float Delay)
+{
+    WaveCountdownRemaining = Delay;
+    GetWorldTimerManager().SetTimer(
+        WaveCountdownHandle,
+        this,
+        &ATDPlayerController::TickWaveCountdown,
+        1.0f,
+        true
+    );
+}
+
+void ATDPlayerController::TickWaveCountdown()
+{
+    WaveCountdownRemaining -= 1.f;
+
+    if (HUDWidget)
+        HUDWidget->UpdateWaveTimer(FMath::Max(0.f, WaveCountdownRemaining));
+
+    if (WaveCountdownRemaining <= 0.f)
+        GetWorldTimerManager().ClearTimer(WaveCountdownHandle);
+}
+
 void ATDPlayerController::HandlePlayerDeath()
 {
     UE_LOG(LogTemp, Warning, TEXT("Player died — showing Game Over screen"));

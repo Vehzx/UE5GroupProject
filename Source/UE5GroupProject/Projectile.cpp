@@ -14,7 +14,7 @@ AProjectile::AProjectile()
     Collision->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
     Collision->SetCollisionObjectType(ECC_WorldDynamic);
     Collision->SetCollisionResponseToAllChannels(ECR_Block);
-    Collision->SetNotifyRigidBodyCollision(true);          // enable hit events
+    Collision->SetNotifyRigidBodyCollision(true);
     Collision->SetGenerateOverlapEvents(false);
 
     Collision->OnComponentHit.AddDynamic(this, &AProjectile::OnHit);
@@ -33,33 +33,20 @@ AProjectile::AProjectile()
 void AProjectile::BeginPlay()
 {
     Super::BeginPlay();
-    UE_LOG(LogTemp, Warning, TEXT("Projectile BeginPlay (OnHit mode)"));
 }
 
 void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
     UPrimitiveComponent* OtherComp, FVector NormalImpulse,
     const FHitResult& Hit)
 {
-    UE_LOG(LogTemp, Warning, TEXT("Projectile OnHit: OtherActor=%s"),
-        OtherActor ? *OtherActor->GetName() : TEXT("NULL"));
-
     if (!OtherActor || OtherActor == GetOwner())
     {
-        UE_LOG(LogTemp, Warning, TEXT("OnHit: Ignoring null or owner"));
         return;
     }
 
     if (IDamageable* Damageable = Cast<IDamageable>(OtherActor))
     {
-        UE_LOG(LogTemp, Warning, TEXT("OnHit: IDamageable, applying %f damage to %s"),
-            Damage, *OtherActor->GetName());
-
         Damageable->ApplyDamage(Damage);
-    }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("OnHit: %s does NOT implement IDamageable"),
-            *OtherActor->GetName());
     }
 
     Destroy();

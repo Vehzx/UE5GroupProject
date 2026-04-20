@@ -48,6 +48,18 @@ public:
     UFUNCTION(BlueprintCallable)
     void StartWaveCountdown(float Delay);
 
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
+    TSubclassOf<UUserWidget> WinScreenClass;
+
+    UFUNCTION(BlueprintImplementableEvent)
+    void OnWin();
+
+    void NotifyNPCSpawned();
+    void NotifyNPCDied();
+    UFUNCTION(BlueprintCallable)
+    void NotifyAllWavesSpawned();
+    void CheckForWinCondition();
+
 protected:
     virtual void BeginPlay() override;
     virtual void PlayerTick(float DeltaTime) override;
@@ -58,6 +70,9 @@ private:
     // Set this in editor to choose which tower to place
     UPROPERTY(EditDefaultsOnly, Category = "Build")
     TSubclassOf<ATowerBase> TowerToBuild;
+
+    int32 AliveNPCs = 0;
+    bool bAllWavesSpawned = false;
 
     // The preview tower actor
     UPROPERTY()

@@ -4,6 +4,7 @@
 #include "EnemyHealthBarWidget.h"
 #include "Components/ProgressBar.h"
 #include "PlayerStatsComponent.h"
+#include "TDPlayerController.h"
 #include "Kismet/GameplayStatics.h"
 
 ANPCBase::ANPCBase()
@@ -26,6 +27,14 @@ void ANPCBase::BeginPlay()
 {
     Super::BeginPlay();
     CurrentHealth = MaxHealth;
+
+    if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+    {
+        if (ATDPlayerController* TDPC = Cast<ATDPlayerController>(PC))
+        {
+            TDPC->NotifyNPCSpawned();
+        }
+    }
 
     // Find GoldManager in the world
     GoldManager = Cast<AGoldManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AGoldManager::StaticClass()));
@@ -74,12 +83,19 @@ void ANPCBase::ApplyDamage(float DamageAmount)
             GM->AddGold(10); // temporary, can add tower specific rewards later
         }
 
+        // Increment player kill stats
         if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
         {
             if (UPlayerStatsComponent* Stats = PC->FindComponentByClass<UPlayerStatsComponent>())
             {
                 Stats->EnemiesKilled++;
                 UE_LOG(LogTemp, Warning, TEXT("EnemiesKilled incremented. Total: %d"), Stats->EnemiesKilled);
+            }
+
+            // Notify PlayerController that an NPC has died
+            if (ATDPlayerController* TDPC = Cast<ATDPlayerController>(PC))
+            {
+                TDPC->NotifyNPCDied();
             }
         }
 

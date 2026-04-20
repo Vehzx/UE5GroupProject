@@ -145,6 +145,34 @@ void ATDPlayerController::StartWaveCountdown(float Delay)
     );
 }
 
+void ATDPlayerController::NotifyNPCSpawned()
+{
+    AliveNPCs++;
+}
+
+void ATDPlayerController::NotifyNPCDied()
+{
+    AliveNPCs--;
+
+    CheckForWinCondition();
+}
+
+void ATDPlayerController::NotifyAllWavesSpawned()
+{
+    bAllWavesSpawned = true;
+
+    CheckForWinCondition();
+}
+
+void ATDPlayerController::CheckForWinCondition()
+{
+    if (bAllWavesSpawned && AliveNPCs <= 0)
+    {
+        OnWin();
+    }
+}
+
+
 void ATDPlayerController::TickWaveCountdown()
 {
     WaveCountdownRemaining -= 1.f;

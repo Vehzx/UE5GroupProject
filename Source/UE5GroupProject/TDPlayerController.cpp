@@ -21,9 +21,13 @@ void ATDPlayerController::BeginPlay()
 {
     Super::BeginPlay();
 
-    // Restore normal game input after level restart
-    SetInputMode(FInputModeGameOnly());
-    SetShowMouseCursor(false);
+    // Enable mouse cursor for gameplay + UI
+    bShowMouseCursor = true;
+
+    FInputModeGameAndUI InputMode;
+    InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+    InputMode.SetHideCursorDuringCapture(false);
+    SetInputMode(InputMode);
 
     // Find the camera manager in the level
     TArray<AActor*> Found;
@@ -82,7 +86,7 @@ void ATDPlayerController::SetupInputComponent()
 
     // Build
     InputComponent->BindAction("BuildMode", IE_Pressed, this, &ATDPlayerController::StartBuildMode);
-    InputComponent->BindAction("ConfirmBuild", IE_Pressed, this, &ATDPlayerController::ConfirmPlaceTower);
+    InputComponent->BindAction("ConfirmBuild", IE_Pressed, this, &ATDPlayerController::HandleLeftClick);
     InputComponent->BindAction("CancelBuild", IE_Pressed, this, &ATDPlayerController::CancelBuildMode);
     InputComponent->BindAction("DebugKillPlayer", IE_Pressed, this, &ATDPlayerController::DebugKillPlayer);
 
@@ -96,6 +100,40 @@ void ATDPlayerController::SetupInputComponent()
     InputComponent->BindAxis("MouseX", this, &ATDPlayerController::OnMouseXInput);
     InputComponent->BindAxis("MouseY", this, &ATDPlayerController::OnMouseYInput);
 }
+
+void ATDPlayerController::DeselectTower()
+{
+    SelectedTower = nullptr;
+
+    if (HUDWidget)
+    {
+        HUDWidget->HideTowerUpgradePanel();
+    }
+}
+
+void ATDPlayerController::HandleLeftClick()
+{
+    FHitResult Hit;
+    GetHitResultUnderCursor(ECC_Visibility, false, Hit);
+
+    // 1. If we are currently placing a tower → place it
+    if (bIsPlacing)
+    {
+        ConfirmPlaceTower();
+        return;
+    }
+
+    // 2. If we clicked a tower → select it
+    if (ATowerBase* Tower = Cast<ATowerBase>(Hit.GetActor()))
+    {
+        OnTowerSelected(Tower);
+        return;
+    }
+
+    // 3. Otherwise → clicked terrain → deselect
+    DeselectTower();
+}
+
 
 void ATDPlayerController::ToggleCamera()
 {
@@ -404,6 +442,16 @@ void ATDPlayerController::StartBuildMode()
     else
     {
         UE_LOG(LogTemp, Error, TEXT("StartBuildMode: FAILED to spawn PreviewTower"));
+    }
+}
+
+void ATDPlayerController::OnTowerSelected(ATowerBase* Tower)
+{
+    SelectedTower = Tower;
+
+    if (HUDWidget)
+    {
+        HUDWidget->ShowTowerUpgradePanel(Tower);
     }
 }
 

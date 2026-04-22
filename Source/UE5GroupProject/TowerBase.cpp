@@ -3,6 +3,7 @@
 #include "Projectile.h"
 #include "GoldManager.h"
 #include "Components/SphereComponent.h"
+#include "TDPlayerController.h"
 #include "Kismet/GameplayStatics.h"
 
 ATowerBase::ATowerBase()
@@ -15,10 +16,21 @@ ATowerBase::ATowerBase()
     MuzzlePoint = CreateDefaultSubobject<USceneComponent>(TEXT("MuzzlePoint"));
     MuzzlePoint->SetupAttachment(TowerMesh);
 
-    TowerMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-    SetActorEnableCollision(false);
+    // --- Collision Setup ---
+    // Towers should NOT block NPCs, projectiles, or placement.
+    // But they MUST respond to Visibility traces so the player can click them.
+    TowerMesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+    TowerMesh->SetCollisionResponseToAllChannels(ECR_Ignore);              
+    TowerMesh->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);   
+    TowerMesh->SetGenerateOverlapEvents(false);                            
+    TowerMesh->bReturnMaterialOnMove = false;
 
-    // Always spawn tower actors at a scale of 45.
+    // Allow clicking
+    TowerMesh->SetNotifyRigidBodyCollision(false);
+    TowerMesh->OnClicked.AddDynamic(this, &ATowerBase::OnTowerClicked);
+
+    // Disable actor-level collision (keeps behaviour identical to before)
+    SetActorEnableCollision(false);
 }
 
 void ATowerBase::BeginPlay()
@@ -72,6 +84,20 @@ void ATowerBase::Tick(float DeltaTime)
     {
         FireAtTarget();
         TimeSinceLastShot = 0.f;
+    }
+}
+
+void ATowerBase::OnTowerClicked(UPrimitiveComponent* TouchedComponent, FKey ButtonPressed)
+{
+    if (bIsPreview)
+        return;
+
+    if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+    {
+        if (ATDPlayerController* TDPC = Cast<ATDPlayerController>(PC))
+        {
+            TDPC->OnTowerSelected(this);
+        }
     }
 }
 

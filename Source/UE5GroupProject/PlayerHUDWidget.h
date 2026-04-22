@@ -2,6 +2,8 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "TowerBase.h"
+#include "Components/TextBlock.h"
 #include "PlayerHUDWidget.generated.h"
 
 UCLASS()
@@ -12,6 +14,30 @@ class UE5GROUPPROJECT_API UPlayerHUDWidget : public UUserWidget
 public:
     UFUNCTION(BlueprintCallable)
     void UpdateHealth(float NewHealth);
+
+    UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+    UWidget* TowerUpgradePanel;
+
+    UPROPERTY(BlueprintReadWrite, Category = "Tower Upgrades")
+    ATowerBase* SelectedTower;
+
+    UFUNCTION(BlueprintCallable)
+    void UpdateTowerStats();
+
+    UFUNCTION(BlueprintCallable)
+    void HideTowerUpgradePanel();
+
+    UPROPERTY(meta = (BindWidget))
+    UTextBlock* FireRateText;
+
+    UPROPERTY(meta = (BindWidget))
+    UTextBlock* RangeText;
+
+    UPROPERTY(meta = (BindWidget))
+    UTextBlock* DamageText;
+
+    UFUNCTION(BlueprintCallable)
+    void ShowTowerUpgradePanel(ATowerBase* Tower);
 
     UFUNCTION(BlueprintCallable)
     void UpdateGold(int32 NewGold);

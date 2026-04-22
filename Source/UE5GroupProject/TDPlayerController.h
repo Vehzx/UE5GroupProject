@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "PlayerStatsComponent.h"
+#include "CameraManager.h"
 #include "TDPlayerController.generated.h"
 
 
@@ -15,6 +16,22 @@ class UE5GROUPPROJECT_API ATDPlayerController : public APlayerController
 
 public:
     ATDPlayerController();
+
+    UPROPERTY()
+    ACameraManager* CameraActor;
+
+    void ToggleCamera();
+    void OnZoomInput(float Value);
+    void OnMouseXInput(float Value);
+    void OnMouseYInput(float Value);
+
+    // Camera pan inputs
+    void OnMoveForward(float Value);
+    void OnMoveRight(float Value);
+
+    bool bRotatingCamera = false;
+    void StartCameraRotate();
+    void StopCameraRotate();
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     UPlayerStatsComponent* PlayerStats;

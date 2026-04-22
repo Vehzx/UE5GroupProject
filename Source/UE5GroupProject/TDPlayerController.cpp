@@ -25,6 +25,18 @@ void ATDPlayerController::BeginPlay()
     SetInputMode(FInputModeGameOnly());
     SetShowMouseCursor(false);
 
+    // Find the camera manager in the level
+    TArray<AActor*> Found;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACameraManager::StaticClass(), Found);
+    if (Found.Num() > 0)
+    {
+        CameraActor = Cast<ACameraManager>(Found[0]);
+        if (CameraActor)
+        {
+            SetViewTargetWithBlend(CameraActor, 0.f);
+        }
+    }
+
     // -----------------------------
     // Create and store the HUD widget
     // -----------------------------
@@ -68,10 +80,79 @@ void ATDPlayerController::SetupInputComponent()
 {
     Super::SetupInputComponent();
 
+    // Build
     InputComponent->BindAction("BuildMode", IE_Pressed, this, &ATDPlayerController::StartBuildMode);
     InputComponent->BindAction("ConfirmBuild", IE_Pressed, this, &ATDPlayerController::ConfirmPlaceTower);
     InputComponent->BindAction("CancelBuild", IE_Pressed, this, &ATDPlayerController::CancelBuildMode);
     InputComponent->BindAction("DebugKillPlayer", IE_Pressed, this, &ATDPlayerController::DebugKillPlayer);
+
+    // Camera
+    InputComponent->BindAction("ToggleCamera", IE_Pressed, this, &ATDPlayerController::ToggleCamera);
+    InputComponent->BindAction("RotateCamera", IE_Pressed, this, &ATDPlayerController::StartCameraRotate);
+    InputComponent->BindAction("RotateCamera", IE_Released, this, &ATDPlayerController::StopCameraRotate);
+    InputComponent->BindAxis("MoveForward", this, &ATDPlayerController::OnMoveForward);
+    InputComponent->BindAxis("MoveRight", this, &ATDPlayerController::OnMoveRight);
+    InputComponent->BindAxis("Zoom", this, &ATDPlayerController::OnZoomInput);
+    InputComponent->BindAxis("MouseX", this, &ATDPlayerController::OnMouseXInput);
+    InputComponent->BindAxis("MouseY", this, &ATDPlayerController::OnMouseYInput);
+}
+
+void ATDPlayerController::ToggleCamera()
+{
+    if (CameraActor)
+        CameraActor->ToggleCamera();
+}
+
+void ATDPlayerController::StartCameraRotate()
+{
+    bRotatingCamera = true;
+}
+
+void ATDPlayerController::StopCameraRotate()
+{
+    bRotatingCamera = false;
+}
+
+void ATDPlayerController::OnMoveForward(float Value)
+{
+    if (!CameraActor || Value == 0.f) return;
+
+    if (CameraActor->bIsTopDown)
+        CameraActor->MoveCamera(FVector(Value, 0.f, 0.f));
+    else
+        CameraActor->PanCamera3D(FVector(Value, 0.f, 0.f));
+}
+
+void ATDPlayerController::OnMoveRight(float Value)
+{
+    if (!CameraActor || Value == 0.f) return;
+
+    if (CameraActor->bIsTopDown)
+        CameraActor->MoveCamera(FVector(0.f, Value, 0.f));
+    else
+        CameraActor->PanCamera3D(FVector(0.f, Value, 0.f));
+}
+
+void ATDPlayerController::OnZoomInput(float Value)
+{
+    if (!CameraActor || Value == 0.f) return;
+
+    if (CameraActor->bIsTopDown)
+        CameraActor->ZoomCamera(Value);
+    else
+        CameraActor->Zoom3DCamera(Value);
+}
+
+void ATDPlayerController::OnMouseXInput(float Value)
+{
+    if (!CameraActor || !bRotatingCamera || CameraActor->bIsTopDown) return;
+    CameraActor->RotateCamera(Value, 0.f);
+}
+
+void ATDPlayerController::OnMouseYInput(float Value)
+{
+    if (!CameraActor || !bRotatingCamera || CameraActor->bIsTopDown) return;
+    CameraActor->RotateCamera(0.f, -Value);
 }
 
 void ATDPlayerController::PlayerTick(float DeltaTime)

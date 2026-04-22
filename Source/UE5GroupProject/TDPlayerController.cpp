@@ -1,4 +1,4 @@
-#include "TDPlayerController.h"
+﻿#include "TDPlayerController.h"
 #include "TowerBase.h"
 #include "Engine/World.h"
 #include "PlayerStatsComponent.h"
@@ -165,9 +165,14 @@ void ATDPlayerController::PlayerTick(float DeltaTime)
     FHitResult Hit;
     if (GetHitResultUnderCursor(ECC_Visibility, true, Hit))
     {
+        // If we're hovering over the path, don't move the preview there
+        if (Hit.GetActor() && Hit.GetActor()->ActorHasTag("Path"))
+        {
+            return;
+        }
+
         FVector Loc = Hit.ImpactPoint;
 
-        // Grid snap
         if (GridSize > 0.f)
         {
             Loc.X = FMath::GridSnap(Loc.X, GridSize);
@@ -267,7 +272,7 @@ void ATDPlayerController::TickWaveCountdown()
 
 void ATDPlayerController::HandlePlayerDeath()
 {
-    UE_LOG(LogTemp, Warning, TEXT("Player died � showing Game Over screen"));
+    UE_LOG(LogTemp, Warning, TEXT("Player died — showing Game Over screen"));
 
     UGameplayStatics::SetGamePaused(GetWorld(), true);
 
@@ -439,8 +444,19 @@ void ATDPlayerController::ConfirmPlaceTower()
         return;
     }
 
+    // Block placement on path
+    if (Hit.GetActor() && Hit.GetActor()->ActorHasTag("Path"))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Cannot place tower on path"));
+        return;
+    }
+
     FVector PlaceLoc = Hit.ImpactPoint;
-    PlaceLoc.Z = 100.f; // Your ground baseline
+
+    PlaceLoc.X = FMath::GridSnap(PlaceLoc.X, GridSize);
+    PlaceLoc.Y = FMath::GridSnap(PlaceLoc.Y, GridSize);
+
+    PlaceLoc.Z = 100.f;
 
     FActorSpawnParameters Params;
     Params.SpawnCollisionHandlingOverride =
@@ -458,6 +474,14 @@ void ATDPlayerController::ConfirmPlaceTower()
 
     if (NewTower)
     {
+        FVector Origin, Extent;
+        NewTower->GetActorBounds(true, Origin, Extent);
+        float LowestPointZ = Origin.Z - Extent.Z;
+
+        FVector Loc = NewTower->GetActorLocation();
+        Loc.Z -= LowestPointZ;
+        NewTower->SetActorLocation(Loc);
+
         NewTower->SetPreview(false);
     }
     else

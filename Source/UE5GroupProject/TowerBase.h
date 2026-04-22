@@ -22,6 +22,9 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tower")
     UStaticMeshComponent* TowerMesh;
 
+    UFUNCTION()
+    void OnTowerClicked(UPrimitiveComponent* TouchedComponent, FKey ButtonPressed);
+
 protected:
     virtual void BeginPlay() override;
     virtual void Tick(float DeltaTime) override;

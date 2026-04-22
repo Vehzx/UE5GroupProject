@@ -33,6 +33,15 @@ public:
     void StartCameraRotate();
     void StopCameraRotate();
 
+    void DeselectTower();
+    void HandleLeftClick();
+
+    UFUNCTION()
+    void OnTowerSelected(ATowerBase* Tower);
+
+    UPROPERTY()
+    ATowerBase* SelectedTower;
+
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     UPlayerStatsComponent* PlayerStats;
 

@@ -16,6 +16,15 @@ bool AGoldManager::SpendGold(int32 Amount)
         CurrentGold -= Amount;
 
         UE_LOG(LogTemp, Warning, TEXT("GoldManager::SpendGold success. CurrentGold AFTER: %d"), CurrentGold);
+
+        if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+        {
+            if (UPlayerStatsComponent* Stats = PC->FindComponentByClass<UPlayerStatsComponent>())
+            {
+                Stats->SpendGold(Amount);   // negative = spending
+            }
+        }
+
         return true;
     }
 

@@ -27,6 +27,7 @@ void ATDPlayerController::BeginPlay()
     FInputModeGameAndUI InputMode;
     InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
     InputMode.SetHideCursorDuringCapture(false);
+    InputMode.SetWidgetToFocus(nullptr);
     SetInputMode(InputMode);
 
     // Find the camera manager in the level
@@ -504,7 +505,7 @@ void ATDPlayerController::ConfirmPlaceTower()
     PlaceLoc.X = FMath::GridSnap(PlaceLoc.X, GridSize);
     PlaceLoc.Y = FMath::GridSnap(PlaceLoc.Y, GridSize);
 
-    PlaceLoc.Z = 100.f;
+    //PlaceLoc.Z = 100.f;
 
     FActorSpawnParameters Params;
     Params.SpawnCollisionHandlingOverride =

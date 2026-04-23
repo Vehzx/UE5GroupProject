@@ -80,7 +80,7 @@ void ANPCBase::ApplyDamage(float DamageAmount)
         // Reward gold
         if (AGoldManager* GM = GoldManager)
         {
-            GM->AddGold(10); // temporary, can add tower specific rewards later
+            GM->AddGold(30);
         }
 
         // Increment player kill stats

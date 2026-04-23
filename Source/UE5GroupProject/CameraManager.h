@@ -47,7 +47,7 @@ public:
 
     // Top-down zoom speed
     UPROPERTY(EditAnywhere, Category = "Camera|TopDown")
-    float ZoomSpeed = 500.f;
+    float ZoomSpeed = 6000.f;
 
     // Top-down zoom limits
     UPROPERTY(EditAnywhere, Category = "Camera|TopDown")
@@ -58,11 +58,11 @@ public:
 
     // 3D pan speed
     UPROPERTY(EditAnywhere, Category = "Camera|3D")
-    float PanSpeed3D = 1500.f;
+    float PanSpeed3D = 2000.f;
 
     // 3D rotation speed
     UPROPERTY(EditAnywhere, Category = "Camera|3D")
-    float RotateSpeed = 100.f;
+    float RotateSpeed = 300.f;
 
     // 3D zoom limits
     UPROPERTY(EditAnywhere, Category = "Camera|3D")
@@ -73,7 +73,7 @@ public:
 
     // 3D zoom speed
     UPROPERTY(EditAnywhere, Category = "Camera|3D")
-    float ZoomSpeed3D = 300.f;
+    float ZoomSpeed3D = 700.f;
 
     bool bIsTopDown = true;
 

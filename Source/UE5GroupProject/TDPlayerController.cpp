@@ -100,10 +100,19 @@ void ATDPlayerController::SetupInputComponent()
     InputComponent->BindAxis("Zoom", this, &ATDPlayerController::OnZoomInput);
     InputComponent->BindAxis("MouseX", this, &ATDPlayerController::OnMouseXInput);
     InputComponent->BindAxis("MouseY", this, &ATDPlayerController::OnMouseYInput);
+
+    // Pause
+    InputComponent->BindAction("Pause", IE_Pressed, this, &ATDPlayerController::TogglePauseMenu).bExecuteWhenPaused = true;
 }
 
 void ATDPlayerController::DeselectTower()
 {
+    // Hide the range before clearing the selection
+    if (SelectedTower)
+    {
+        SelectedTower->SetRangeVisible(false);
+    }
+
     SelectedTower = nullptr;
 
     if (HUDWidget)
@@ -227,6 +236,18 @@ void ATDPlayerController::OnHealthChanged(float NewHealth, float Delta)
     if (auto HUD = Cast<UPlayerHUDWidget>(GetHUDWidget()))
     {
         HUD->UpdateHealth(NewHealth);
+
+        // If Delta is negative, it means we took damage
+        if (Delta < 0.f)
+        {
+            HUD->PlayDamageFlash();
+
+            // Trigger the camera shake!
+            if (DamageCameraShake)
+            {
+                ClientStartCameraShake(DamageCameraShake);
+            }
+        }
     }
 }
 
@@ -439,6 +460,7 @@ void ATDPlayerController::StartBuildMode()
 
         PreviewTower->SetPreview(true);
         PreviewTower->SetActorHiddenInGame(false);
+        PreviewTower->SetRangeVisible(true);
     }
     else
     {
@@ -448,7 +470,19 @@ void ATDPlayerController::StartBuildMode()
 
 void ATDPlayerController::OnTowerSelected(ATowerBase* Tower)
 {
+    // Hide the old tower's range if we already had one selected
+    if (SelectedTower)
+    {
+        SelectedTower->SetRangeVisible(false);
+    }
+
     SelectedTower = Tower;
+
+    // Show the new tower's range
+    if (SelectedTower)
+    {
+        SelectedTower->SetRangeVisible(true);
+    }
 
     if (HUDWidget)
     {
@@ -552,4 +586,55 @@ void ATDPlayerController::CancelBuildMode()
         PreviewTower->Destroy();
         PreviewTower = nullptr;
     }
+}
+
+void ATDPlayerController::TogglePauseMenu()
+{
+    // If the game is already paused, unpause it
+    if (UGameplayStatics::IsGamePaused(GetWorld()))
+    {
+        ResumeGame();
+    }
+    else
+    {
+        // Pause Game
+        UGameplayStatics::SetGamePaused(GetWorld(), true);
+
+        // Create the widget if it hasn't been created yet
+        if (PauseMenuClass && !PauseMenuWidget)
+        {
+            PauseMenuWidget = CreateWidget<UUserWidget>(this, PauseMenuClass);
+        }
+
+        // Add to viewport and change input mode to UI so they can click buttons
+        if (PauseMenuWidget && !PauseMenuWidget->IsInViewport())
+        {
+            PauseMenuWidget->AddToViewport();
+
+            FInputModeGameAndUI InputMode;
+            InputMode.SetWidgetToFocus(PauseMenuWidget->TakeWidget());
+            SetInputMode(InputMode);
+            bShowMouseCursor = true;
+        }
+    }
+}
+
+void ATDPlayerController::ResumeGame()
+{
+    // Unpause the game
+    UGameplayStatics::SetGamePaused(GetWorld(), false);
+
+    // Remove the pause menu from the screen
+    if (PauseMenuWidget && PauseMenuWidget->IsInViewport())
+    {
+        PauseMenuWidget->RemoveFromParent();
+    }
+
+    // Return input mode back to normal gameplay
+    FInputModeGameAndUI InputMode;
+    InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+    InputMode.SetHideCursorDuringCapture(false);
+    InputMode.SetWidgetToFocus(nullptr);
+    SetInputMode(InputMode);
+    bShowMouseCursor = true;
 }

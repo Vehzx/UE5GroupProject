@@ -15,6 +15,9 @@ public:
     UFUNCTION(BlueprintCallable)
     void UpdateHealth(float NewHealth);
 
+    UFUNCTION(BlueprintImplementableEvent, Category = "Damage")
+    void PlayDamageFlash();
+
     UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
     UWidget* TowerUpgradePanel;
 

@@ -6,6 +6,7 @@
 #include "PlayerStatsComponent.h"
 #include "TDPlayerController.h"
 #include "Kismet/GameplayStatics.h"
+#include "DamageTextWidget.h"
 
 ANPCBase::ANPCBase()
 {
@@ -68,6 +69,31 @@ void ANPCBase::HandleReachedGoal()
 void ANPCBase::ApplyDamage(float DamageAmount)
 {
     CurrentHealth -= DamageAmount;
+
+    // --- Show Floating Damage Text ---
+    if (DamageTextClass)
+    {
+        if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+        {
+            UDamageTextWidget* DamageWidget = CreateWidget<UDamageTextWidget>(PC, DamageTextClass);
+            if (DamageWidget)
+            {
+                DamageWidget->SetDamageText(DamageAmount);
+                DamageWidget->AddToViewport();
+
+                // Get 3D Head Location
+                FVector HeadLocation = GetActorLocation() + FVector(0.f, 0.f, 100.f);
+                FVector2D ScreenPos;
+
+                // Project the 3D world location to the 2D screen
+                if (PC->ProjectWorldLocationToScreen(HeadLocation, ScreenPos))
+                {
+                    DamageWidget->SetPositionInViewport(ScreenPos);
+                    DamageWidget->SetAlignmentInViewport(FVector2D(0.5f, 0.5f)); // Centers the text block perfectly
+                }
+            }
+        }
+    }
 
     if (UEnemyHealthBarWidget* HealthWidget =
         Cast<UEnemyHealthBarWidget>(HealthWidgetComponent->GetUserWidgetObject()))

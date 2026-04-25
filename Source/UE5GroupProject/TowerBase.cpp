@@ -5,6 +5,7 @@
 #include "Components/SphereComponent.h"
 #include "TDPlayerController.h"
 #include "Kismet/GameplayStatics.h"
+#include "Components/DecalComponent.h"
 
 ATowerBase::ATowerBase()
 {
@@ -31,10 +32,19 @@ ATowerBase::ATowerBase()
 
     // Disable actor-level collision (keeps behaviour identical to before)
     SetActorEnableCollision(false);
+
+    // --- Range Decal Setup ---
+    RangeDecal = CreateDefaultSubobject<UDecalComponent>(TEXT("RangeDecal"));
+    RangeDecal->SetupAttachment(RootComponent);
+    RangeDecal->SetAbsolute(false, false, true);
+    RangeDecal->SetRelativeRotation(FRotator(-90.f, 0.f, 0.f)); // Point the decal straight down at the floor
+    RangeDecal->SetVisibility(false); // Hidden by default
 }
 
 void ATowerBase::BeginPlay()
 {
+	UpdateRangeDecalSize(); // Update the decal size based on the tower's range
+
     Super::BeginPlay();
 
     // Find GoldManager by tag in the level
@@ -66,7 +76,8 @@ void ATowerBase::Tick(float DeltaTime)
     // Drop target if it leaves range
     if (CurrentTarget)
     {
-        float Dist = FVector::Dist(CurrentTarget->GetActorLocation(), GetActorLocation());
+        // Changed to Dist2D!
+        float Dist = FVector::Dist2D(CurrentTarget->GetActorLocation(), GetActorLocation());
         if (Dist > Range)
         {
             CurrentTarget = nullptr;
@@ -111,7 +122,9 @@ ANPCBase* ATowerBase::FindTarget()
 
     for (AActor* Actor : FoundNPCs)
     {
-        const float Dist = FVector::Dist(Actor->GetActorLocation(), GetActorLocation());
+        //const float Dist = FVector::Dist(Actor->GetActorLocation(), GetActorLocation());
+        // Changed to Dist2D!
+        const float Dist = FVector::Dist2D(Actor->GetActorLocation(), GetActorLocation());
 
         if (Dist <= Range && Dist < ClosestDist)
         {
@@ -163,6 +176,7 @@ void ATowerBase::UpgradeFireRate(float Amount)
 void ATowerBase::UpgradeRange(float Amount)
 {
     Range += Amount;
+	UpdateRangeDecalSize();
 }
 
 void ATowerBase::UpgradeDamage(float Amount)
@@ -193,5 +207,23 @@ void ATowerBase::ApplyDamageUpgrade()
     if (GoldManager && GoldManager->SpendGold(DamageUpgradeCost))
     {
         UpgradeDamage(DamageUpgradeAmount);
+    }
+}
+
+// --- Range Decal Functions ---
+void ATowerBase::UpdateRangeDecalSize()
+{
+    if (RangeDecal)
+    {
+        RangeDecal->DecalSize = FVector(200.f, 1.f, 1.f);
+		RangeDecal->SetWorldScale3D(FVector(1.f, Range, Range)); // Scale the decal based on the tower's range
+    }
+}
+
+void ATowerBase::SetRangeVisible(bool bShow)
+{
+    if (RangeDecal)
+    {
+        RangeDecal->SetVisibility(bShow);
     }
 }

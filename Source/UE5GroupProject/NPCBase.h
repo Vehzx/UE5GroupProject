@@ -6,6 +6,8 @@
 #include "GoldManager.h"
 #include "NPCBase.generated.h"
 
+class UDamageTextWidget;
+
 UCLASS()
 class UE5GROUPPROJECT_API ANPCBase : public ACharacter, public IDamageable
 {
@@ -29,6 +31,9 @@ public:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
     class UWidgetComponent* HealthWidgetComponent;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI", meta = (AllowPrivateAccess = "true"))
+    TSubclassOf<UDamageTextWidget> DamageTextClass;
 
     UFUNCTION(BlueprintCallable)
     void HandleReachedGoal();

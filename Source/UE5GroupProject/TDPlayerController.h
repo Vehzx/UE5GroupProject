@@ -4,6 +4,7 @@
 #include "GameFramework/PlayerController.h"
 #include "PlayerStatsComponent.h"
 #include "CameraManager.h"
+#include "Camera/CameraShakeBase.h"
 #include "TDPlayerController.generated.h"
 
 
@@ -63,6 +64,9 @@ public:
     UFUNCTION()
     void OnHealthChanged(float NewHealth, float Delta);
 
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Camera")
+    TSubclassOf<UCameraShakeBase> DamageCameraShake;
+
     UFUNCTION()
     void OnGoldChanged(int32 NewGold, int32 Delta);
 
@@ -79,6 +83,19 @@ public:
 
     UFUNCTION(BlueprintImplementableEvent)
     void OnWin();
+
+	// Pause menu
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
+    TSubclassOf<UUserWidget> PauseMenuClass;
+
+    UPROPERTY()
+    UUserWidget* PauseMenuWidget;
+
+    UFUNCTION(BlueprintCallable)
+    void TogglePauseMenu();
+
+    UFUNCTION(BlueprintCallable)
+    void ResumeGame();
 
     void NotifyNPCSpawned();
     void NotifyNPCDied();

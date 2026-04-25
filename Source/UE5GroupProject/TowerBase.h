@@ -7,6 +7,7 @@
 
 class ANPCBase;
 class AGoldManager;
+class UDecalComponent;
 
 UCLASS()
 class UE5GROUPPROJECT_API ATowerBase : public AActor
@@ -32,6 +33,16 @@ protected:
 public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tower")
     USceneComponent* MuzzlePoint;
+
+    // --- Range Indicator ---
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tower")
+    UDecalComponent* RangeDecal;
+
+    UFUNCTION(BlueprintCallable, Category = "Tower")
+    void UpdateRangeDecalSize();
+
+    UFUNCTION(BlueprintCallable, Category = "Tower")
+    void SetRangeVisible(bool bShow);
 
     // --- Tower Stats ---
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tower|Stats")

@@ -506,18 +506,6 @@ void ATDPlayerController::ConfirmPlaceTower()
     }
 
     // -----------------------------
-    //  Tower Cost Check
-    // -----------------------------
-    const int32 TowerCost = 50;
-
-    if (!PlayerStats || !PlayerStats->SpendGold(TowerCost))
-    {
-        UE_LOG(LogTemp, Warning, TEXT("Not enough gold to place tower!"));
-        CancelBuildMode(); // Remove preview
-        return;
-    }
-
-    // -----------------------------
     //  Get placement location
     // -----------------------------
     FHitResult Hit;
@@ -531,6 +519,18 @@ void ATDPlayerController::ConfirmPlaceTower()
     if (Hit.GetActor() && Hit.GetActor()->ActorHasTag("Path"))
     {
         UE_LOG(LogTemp, Warning, TEXT("Cannot place tower on path"));
+        return;
+    }
+
+    // -----------------------------
+    //  Tower Cost Check
+    // -----------------------------
+    const int32 TowerCost = 50;
+
+    if (!PlayerStats || !PlayerStats->SpendGold(TowerCost))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Not enough gold to place tower!"));
+        CancelBuildMode(); // Remove preview
         return;
     }
 
